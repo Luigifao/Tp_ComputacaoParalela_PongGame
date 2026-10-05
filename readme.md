@@ -96,7 +96,6 @@ Antes de rodar o código principal, confirme que o ESP32 fala com o MMA8452:
 2. Rode o exemplo **I2C Scanner** (disponível em vários tutoriais).
 3. Anote o endereço retornado (normalmente `0x1D` ou `0x1C`).
 4. Ajuste `#define MMA8452_ADDR` no código do projeto com o valor encontrado.
-
 ### 1.5. Gravar o código nos ESP32
 
 1. Abra o arquivo `esp32_pong.ino`.
@@ -363,10 +362,7 @@ E envie manualmente:
 
 ## 👥 Autores
 
-- [Nome do Integrante 1]
-- [Nome do Integrante 2]
-- [Nome do Integrante 3]
-
+- Luigi Fernando Alves 
 **Disciplina:** Computação Paralela
 **Curso:** Ciência da Computação
 **Instituição:** [Nome da Instituição]
