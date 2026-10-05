@@ -1,18 +1,3 @@
-Que excelente notícia! 🎉 Fico muito feliz que o jogo está funcionando do jeito que você queria!
-
-Agora, para o README, vou montar um documento **completo e didático**, no formato Markdown, que qualquer integrante do seu grupo consegue seguir do zero. Ele cobre:
-
-1. **Visão geral** da arquitetura
-2. **Configuração do ESP32** (Arduino IDE)
-3. **Configuração do servidor AWS** (EC2 + Python)
-4. **Configuração do HTML** (interface web)
-5. **Como testar** e **solução de problemas**
-
----
-
-## 📄 README.md
-
-```markdown
 # 🏓 Pong com ESP32 e AWS - TP de Computação Paralela
 
 Trabalho prático da disciplina de **Computação Paralela** do curso de **Ciência da Computação**.
