@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong - Computação Paralela</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #111; color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
+        }
+        h1 { font-size: 24px; margin-bottom: 15px; color: #0f0;
+             text-transform: uppercase; letter-spacing: 2px; }
+        canvas {
+            border: 2px solid #fff; background: #000;
+            border-radius: 4px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            max-width: 100%; height: auto;
+        }
+        #status { margin-top: 15px; font-size: 14px; color: #0f0;
+                  font-family: monospace; min-height: 20px; }
+        .controls { margin-top: 15px; display: flex; gap: 10px; }
+        button {
+            padding: 10px 24px; font-size: 15px; font-weight: bold;
+            cursor: pointer; background: #0f0; color: #000;
+            border: none; border-radius: 5px;
+            transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        button:hover:not(:disabled) { background: #0c0; transform: translateY(-1px); }
+        button:disabled { background: #333; color: #666; cursor: not-allowed; }
+        #resetBtn { background: #f80; }
+        #resetBtn:hover:not(:disabled) { background: #d70; }
+        .info { margin-top: 20px; font-size: 12px; color: #666;
+                text-align: center; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <h1>🏓 Pong - ESP32</h1>
+    <canvas id="game" width="800" height="400"></canvas>
+    <div id="status">Conectando ao servidor...</div>
+    <div class="controls">
+        <button id="startBtn" disabled>Iniciar Jogo</button>
+        <button id="resetBtn" disabled>Reiniciar</button>
+    </div>
+    <div class="info">
+        Controle 1 (verde) = Jogador da esquerda · Controle 2 (vermelho) = Jogador da direita
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://')
+                       + location.host + '/ws';
+
+        let ws;
+        let gameState = null;
+        let reconnectTimer = null;
+
+        function connect() {
+            console.log("Tentando conectar em:", WS_URL);
+            statusDiv.textContent = 'Conectando ao servidor...';
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                console.log("WebSocket conectado!");
+                statusDiv.textContent = 'Conectado! Aguardando ESP32...';
+                ws.send(JSON.stringify({ type: 'register', role: 'browser' }));
+                startBtn.disabled = false;
+                resetBtn.disabled = false;
+            };
+
+            ws.onmessage = (event) => {
+                let data;
+                try { data = JSON.parse(event.data); }
+                catch (e) { return; }
+
+                if (data.type === 'state') {
+                    gameState = data;
+                    render();
+                } else if (data.type === 'error') {
+                    statusDiv.textContent = 'Erro: ' + data.message;
+                }
+            };
+
+            ws.onclose = () => {
+                statusDiv.textContent = 'Desconectado. Reconectando...';
+                startBtn.disabled = true;
+                resetBtn.disabled = true;
+                if (reconnectTimer) clearTimeout(reconnectTimer);
+                reconnectTimer = setTimeout(connect, 2000);
+            };
+
+            ws.onerror = (err) => console.error('Erro WebSocket:', err);
+        }
+
+        function render() {
+            if (!gameState) return;
+            const { ball, paddle1, paddle2, score1, score2, running } = gameState;
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Linha central
+            ctx.strokeStyle = '#333';
+            ctx.setLineDash([10, 10]);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Placar
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 48px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(score1, canvas.width / 4, 50);
+            ctx.fillText(score2, (3 * canvas.width) / 4, 50);
+
+            // Paddles
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(0, paddle1.y, 10, 100);
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(canvas.width - 10, paddle2.y, 10, 100);
+
+            // Bola
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(ball.x + 5, ball.y + 5, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            statusDiv.textContent = running
+                ? '🏓 Jogo em andamento'
+                : 'Aguardando início...';
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'start' }));
+                startBtn.disabled = true;
+            }
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'reset' }));
+                startBtn.disabled = false;
+            }
+        });
+
+        connect();
+    </script>
+</body>
+</html>
