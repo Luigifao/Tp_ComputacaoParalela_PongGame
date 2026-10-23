@@ -363,10 +363,15 @@ E envie manualmente:
 ## 👥 Autores
 
 - Luigi Fernando Alves 
+- Cassio Luiz
+- Ester Gonçalves
+- Felipe Rabelo
+- Julia Garcia
+- Rafaela Gonçalves
 **Disciplina:** Computação Paralela
 **Curso:** Ciência da Computação
-**Instituição:** [Nome da Instituição]
-**Data:** [Mês/Ano]
+**Instituição:** Dom Helder Centro Universitario
+**Data:** 10/2026
 
 ---
 
